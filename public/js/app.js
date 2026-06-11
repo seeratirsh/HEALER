@@ -134,6 +134,7 @@ const emergencyQuestions = [
 let emergencyAnswers = {};
 let emergencyStep = 0;
 let typewriterTimer = null;
+let lastGuidance = null;
 
 // PWA
 if ('serviceWorker' in navigator) {
@@ -232,9 +233,10 @@ function speakGuidance(text) {
   window.speechSynthesis.cancel();
 
   const utterance = new SpeechSynthesisUtterance(text);
+  const urduVoices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('ur'));
   utterance.lang =
     currentLang === 'hi' ? 'hi-IN' :
-    currentLang === 'ur' ? 'ur-PK' : 'en-US';
+    currentLang === 'ur' ?  (urduVoices.length ? 'ur-PK' : 'hi-IN') : 'en-US';
   utterance.rate = 0.88;
   utterance.pitch = 1;
   utterance.volume = 1;
@@ -267,9 +269,9 @@ function stopSpeaking() {
 }
 
 document.getElementById('speakBtn').addEventListener('click', () => {
-  const t = document.getElementById('guidanceText').textContent.trim();
-  if (t) speakGuidance(t);
+  if (lastGuidance) speakGuidance(buildSpeakText(lastGuidance));
 });
+
 document.getElementById('stopBtn').addEventListener('click', stopSpeaking);
 function normalizeGuidanceItem(item) {
   if (typeof item === 'string') return item;
@@ -372,10 +374,26 @@ async function submitImage(file) {
   }
 }
 
+function buildSpeakText(guidance) {
+  // For Urdu, speak English version since ur-PK voice unavailable in most browsers
+  if (currentLang === 'ur' && guidance._enActions) {
+    const parts = [];
+    if (guidance._enActions?.length) parts.push(...guidance._enActions);
+    if (guidance._enWarnings?.length) parts.push(...guidance._enWarnings);
+    if (guidance._enNote) parts.push(guidance._enNote);
+    return parts.join('. ');
+  }
+  const parts = [];
+  if (guidance.actions?.length) parts.push(...guidance.actions.map(a => normalizeGuidanceItem(a)));
+  if (guidance.warnings?.length) parts.push(...guidance.warnings.map(w => normalizeGuidanceItem(w)));
+  if (guidance.note) parts.push(guidance.note);
+  return parts.join('. ');
+}
+
 // Replace showGuidance with renderGuidance
 
 function renderGuidance(guidance) {
-
+  lastGuidance = guidance;
   console.log("Guidance received:", guidance);
 
   stopSpeaking();
@@ -409,9 +427,9 @@ function renderGuidance(guidance) {
     note: '📋 خلاصہ'
   }
 };
-let raw = response.data?.choices?.[0]?.message?.content || '';
-console.log("RAW RESPONSE:");
-console.log(raw);
+// let raw = response.data?.choices?.[0]?.message?.content || '';
+// console.log("RAW RESPONSE:");
+// console.log(raw);
 const t = labels[currentLang] || labels.en;
 
   loading.classList.add('hidden');
@@ -505,9 +523,9 @@ else {
       i++;
       typewriterTimer = setTimeout(typeWriter, 8);
     } else {
-      setTimeout(() => {
-        speakGuidance(display);
-      }, 500);
+     setTimeout(() => {
+    speakGuidance(buildSpeakText(guidance));
+     }, 500);
     }
   }
 

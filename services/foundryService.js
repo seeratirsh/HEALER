@@ -155,14 +155,14 @@ async function queryFoundry(userMessage) {
         messages: [
           {
             role: 'system', 
-            content: SYSTEM_PROMPT
+            content: `${SYSTEM_PROMPT}\n\n---\n\nNow respond to this input only with valid JSON:\n\n${userMessage}`
           },
           {
             role: 'user',
             content: userMessage
           }
         ],
-        response_format: { type: "json_object" },
+        // response_format: { type: "json_object" },
         max_tokens: 500,
         temperature: 0
       },
@@ -226,17 +226,24 @@ async function queryFoundry(userMessage) {
     parsed.meds = Array.isArray(parsed.meds) ? parsed.meds.filter(m => m) : [];
     parsed.note = String(parsed.note || '');
     const banned = [
-    'language model',
-    'user says',
-    'user asked',
-    'assistant',
-    'ai model',
-    'reasoning',
-    'chain of thought',
-    'we are',
-    'as an ai'
+      'language model',
+      'user says',
+      'user asked',
+      'as an ai',
+      'as phi',
+      'i am an ai',
+      'chain of thought',
+      'my reasoning is',
+      'the user asks'
    ];
 
+console.log('Actions BEFORE filter:', JSON.stringify(parsed.actions));
+
+parsed.actions = parsed.actions.filter(a =>
+  !banned.some(b => String(a).toLowerCase().includes(b))
+);
+
+console.log('Actions AFTER filter:', JSON.stringify(parsed.actions));
 parsed.actions = parsed.actions.filter(a =>
   !banned.some(b =>
     String(a).toLowerCase().includes(b)

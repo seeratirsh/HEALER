@@ -8,6 +8,83 @@ function detectLanguage(text) {
   return 'en';
 }
 
+ function getLocalGuidance(msg) {
+  const m = msg.toLowerCase();
+  
+  if (/vomit|nausea|throwing up/i.test(m)) return {
+    urgency: 'low', emergency: false,
+    actions: ['Sip small amounts of water or oral rehydration solution', 'Rest and avoid solid food for 1-2 hours', 'Gradually reintroduce bland foods like rice or toast'],
+    warnings: ['Seek care if vomiting lasts more than 24 hours', 'Seek urgent care if there is blood in vomit'],
+    meds: ['ORS solution to prevent dehydration', 'Ondansetron 4mg if prescribed by doctor'],
+    note: 'Vomiting usually resolves with rest and hydration.'
+  };
+
+  if (/fever|temperature/i.test(m)) return {
+    urgency: 'low', emergency: false,
+    actions: ['Drink plenty of fluids', 'Rest adequately', 'Monitor temperature regularly'],
+    warnings: ['Seek care if fever exceeds 103°F (39.4°C)', 'Seek urgent care if difficulty breathing develops'],
+    meds: ['Paracetamol 500mg every 4-6 hours as needed'],
+    note: 'Most mild fevers resolve with hydration and rest.'
+  };
+
+  if (/headache|head pain/i.test(m)) return {
+    urgency: 'low', emergency: false,
+    actions: ['Rest in a quiet, dark room', 'Drink water — dehydration is a common cause', 'Apply a cold or warm compress to forehead'],
+    warnings: ['Seek urgent care if headache is sudden and severe', 'Seek care if headache is with fever and stiff neck'],
+    meds: ['Paracetamol 500mg or Ibuprofen 400mg as needed'],
+    note: 'Most headaches resolve with rest and hydration.'
+  };
+
+  if (/cold|flu|cough|runny nose/i.test(m)) return {
+    urgency: 'low', emergency: false,
+    actions: ['Rest and stay hydrated', 'Use steam inhalation for congestion', 'Gargle with warm salt water for sore throat'],
+    warnings: ['Seek care if symptoms worsen after 7 days', 'Seek urgent care if breathing becomes difficult'],
+    meds: ['Paracetamol 500mg for fever or body ache', 'Cetirizine 10mg for runny nose if needed'],
+    note: 'Cold and flu usually resolve within 7-10 days with rest.'
+  };
+
+  if (/stomach|abdomen|belly/i.test(m)) return {
+    urgency: 'low', emergency: false,
+    actions: ['Rest and avoid heavy meals', 'Drink warm water or ginger tea', 'Apply a warm compress to the abdomen'],
+    warnings: ['Seek care if pain is severe or persistent', 'Seek urgent care if pain is with fever or vomiting blood'],
+    meds: ['Antacid (like Gelusil) for acidity-related pain'],
+    note: 'Mild stomach aches often resolve with rest and light diet.'
+  };
+
+  if (/sore throat|throat pain/i.test(m)) return {
+    urgency: 'low', emergency: false,
+    actions: ['Gargle with warm salt water 3 times a day', 'Drink warm fluids like honey and ginger tea', 'Rest your voice'],
+    warnings: ['Seek care if throat pain is severe or with high fever', 'Seek care if you have difficulty swallowing'],
+    meds: ['Paracetamol 500mg for pain relief', 'Strepsils lozenges for soothing'],
+    note: 'Most sore throats improve within a few days.'
+  };
+
+  if (/diarrhea|loose stool|loose motion/i.test(m)) return {
+    urgency: 'low', emergency: false,
+    actions: ['Drink ORS solution to replace lost fluids', 'Eat bland foods like rice, banana, and toast', 'Avoid dairy, spicy, and fatty foods'],
+    warnings: ['Seek care if diarrhea lasts more than 2 days', 'Seek urgent care if there is blood in stool'],
+    meds: ['ORS solution after every loose stool', 'Loperamide 2mg if needed (not for children under 12)'],
+    note: 'Stay hydrated — dehydration is the main risk with diarrhea.'
+  };
+
+  if (/cut|wound|scratch/i.test(m)) return {
+    urgency: 'low', emergency: false,
+    actions: ['Clean the wound with clean running water', 'Apply gentle pressure with a clean cloth to stop bleeding', 'Cover with a clean bandage'],
+    warnings: ['Seek care if cut is deep or edges are gaping', 'Seek care if wound shows signs of infection (redness, swelling, pus)'],
+    meds: ['Apply antiseptic cream (like Betadine) after cleaning'],
+    note: 'Keep the wound clean and dry to prevent infection.'
+  };
+
+  // Default fallback
+  return {
+    urgency: 'low', emergency: false,
+    actions: ['Monitor your symptoms carefully', 'Rest and stay hydrated', 'Consult a doctor if symptoms worsen or persist'],
+    warnings: ['Seek urgent care if you develop difficulty breathing, chest pain, or loss of consciousness'],
+    meds: [],
+    note: 'When in doubt, consult a healthcare professional.'
+  };
+}
+
 async function assess(req, res) {
   try {
     let { message, language = 'en', inputType = 'text' } = req.body;
@@ -96,6 +173,8 @@ async function assess(req, res) {
         };
       })();
 
+     
+
       // Translate protocol back to user language
       let final = protocol;
       if (language !== 'en') {
@@ -115,7 +194,7 @@ async function assess(req, res) {
     }
 
     // Step 4 — Get guidance from Foundry (returns structured object now)
-    const guidanceObj = await queryFoundry(englishMessage);
+    const guidanceObj = getLocalGuidance(englishMessage);
     console.log('Guidance object received:', guidanceObj.urgency, 'emergency:', guidanceObj.emergency);
 
     // Step 5 — Translate response BACK to user's language if needed
@@ -140,7 +219,10 @@ async function assess(req, res) {
         actions: translatedActions, 
         warnings: translatedWarnings, 
         meds: translatedMeds,
-        note: translatedNote 
+        note: translatedNote,
+        _enActions: guidanceObj.actions,   
+        _enWarnings: guidanceObj.warnings,
+        _enNote: guidanceObj.note
       };
     }
 
