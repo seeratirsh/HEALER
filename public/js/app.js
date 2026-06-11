@@ -3,17 +3,17 @@
  * Fixes: response position, TTS, image upload, typewriter effect
  */
 
-const { text } = require("express");
-
 const i18n = {
   en: {
     appName: 'HEALER',
-    tagline: "From emergencies to everyday health — we've got you",
+    tagline: "Vision • Voice • Reasoning • Guidance",
     greeting: "Hi, I'm HEALER 👋",
     greetingSub: 'Describe what\'s happening — emergencies, fever, pain, anything.',
     inputLabel: "What's the problem?",
     placeholder: 'e.g. someone is choking, I have a fever, deep cut on hand...',
-    btnHelp: 'Get help now', btnVoice: 'Voice', btnImage: 'Image',
+    btnHelp: "Start Analysis",
+    btnVoice:"Voice Input",
+    btnImage: "Visual Analysis",
     emergencyLabel: '🚨 Emergencies', healthLabel: '💊 Everyday Health',
     loadingTitle: 'Analyzing...', loadingSub: 'Checking WHO protocols',
     responseTitle: 'Health Guidance',
@@ -23,7 +23,7 @@ const i18n = {
   },
   hi: {
     appName: 'HEALER',
-    tagline: 'आपात स्थिति से रोज़मर्रा की सेहत तक — हम आपके साथ हैं',
+    tagline: 'विज़न • आवाज़ • रीजनिंग • मार्गदर्शन',
     greeting: 'नमस्ते, मैं HEALER हूँ 👋',
     greetingSub: 'बताइए क्या हुआ — आपात, बुखार, दर्द, कुछ भी।',
     inputLabel: 'क्या समस्या है?',
@@ -38,7 +38,7 @@ const i18n = {
   },
   ur: {
     appName: 'HEALER',
-    tagline: 'ہنگامی حالات سے روزمرہ صحت تک — ہم آپ کے ساتھ ہیں',
+    tagline: 'ویژن • آواز • ریزننگ • رہنمائی',
     greeting: 'السلام علیکم، میں HEALER ہوں 👋',
     greetingSub: 'بتائیں کیا ہوا — ہنگامی، بخار، درد، کچھ بھی۔',
     inputLabel: 'کیا مسئلہ ہے؟',
@@ -121,6 +121,18 @@ const chips = {
 };
 
 let currentLang    = 'en';
+let emergencyMode = false;
+
+const emergencyQuestions = [
+  "Is the person conscious?",
+  "Is the person breathing normally?",
+  "Is there heavy bleeding?",
+  "Is there severe pain or visible fracture?",
+  "Is there head or neck injury?"
+];
+
+let emergencyAnswers = {};
+let emergencyStep = 0;
 let typewriterTimer = null;
 
 // PWA
@@ -361,69 +373,239 @@ async function submitImage(file) {
 }
 
 // Replace showGuidance with renderGuidance
-function renderGuidance(guidance) {
-  stopSpeaking();
-  if (typewriterTimer) clearTimeout(typewriterTimer);
 
-  const loading  = document.getElementById('loading');
+function renderGuidance(guidance) {
+
+  console.log("Guidance received:", guidance);
+
+  stopSpeaking();
+
+  if (typewriterTimer) {
+    clearTimeout(typewriterTimer);
+  }
+
+  const loading = document.getElementById('loading');
   const response = document.getElementById('responseArea');
-  const el       = document.getElementById('guidanceText');
+  const el = document.getElementById('guidanceText');
+  const badge = document.getElementById('riskBadge');
+
+  const labels = {
+  en: {
+    actions: '🩺 WHAT TO DO',
+    warnings: '⚠️ WARNING SIGNS',
+    meds: '💊 MEDICATION',
+    note: '📋 SUMMARY'
+  },
+  hi: {
+    actions: '🩺 क्या करें',
+    warnings: '⚠️ चेतावनी संकेत',
+    meds: '💊 दवा',
+    note: '📋 सारांश'
+  },
+  ur: {
+    actions: '🩺 کیا کریں',
+    warnings: '⚠️ خطرے کی علامات',
+    meds: '💊 دوا',
+    note: '📋 خلاصہ'
+  }
+};
+let raw = response.data?.choices?.[0]?.message?.content || '';
+console.log("RAW RESPONSE:");
+console.log(raw);
+const t = labels[currentLang] || labels.en;
 
   loading.classList.add('hidden');
-  el.textContent = '';
   response.classList.remove('hidden');
-  response.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  // Build display text from guidance object
+  el.textContent = '';
+
   let display = '';
-  
   if (guidance.emergency) {
-    display += '⚠️ EMERGENCY — Follow immediately\n\n';
+  badge.style.display = 'inline-block';
+  badge.className='risk-badge risk-high';
+  badge.innerHTML ='<i class="fa-solid fa-triangle-exclamation"></i> HIGH RISK';
   }
-  
-  if (guidance.actions && Array.isArray(guidance.actions) && guidance.actions.length > 0) {
-    display += 'Steps:\n';
-    guidance.actions.normalizeGuidanceItem((a, idx) => { 
-      if (text)display += `${idx + 1}. ${text}\n`; 
+else if (guidance.urgency === 'medium') {
+  badge.style.display = 'inline-block';
+  badge.className='risk-badge risk-medium';
+  badge.innerHTML ='<i class="fa-solid fa-stethoscope"></i> MEDIUM RISK';
+  }
+else { 
+  badge.style.display = 'inline-block';
+  badge.className='risk-badge risk-low';
+  badge.innerHTML ='<i class="fa-solid fa-heart-pulse"></i> LOW RISK';
+ }
+
+  if (
+    guidance.actions &&
+    Array.isArray(guidance.actions) &&
+    guidance.actions.length > 0
+  ) {
+    display += `${t.actions}\n\n`;
+
+    guidance.actions.forEach((a, idx) => {
+      const text = normalizeGuidanceItem(a);
+
+      if (text && text.trim()) {
+        display += `${idx + 1}. ${text}\n`;
+      }
     });
+
     display += '\n';
-  }
-  
-  if (guidance.warnings && Array.isArray(guidance.warnings) && guidance.warnings.length > 0) {
-    display += 'Warnings:\n';
-    guidance.warnings.forEach(w => { 
-      display += `- ${w}\n`; 
-    });
-    display += '\n';
-  }
-  
-  if (guidance.meds && Array.isArray(guidance.meds) && guidance.meds.length > 0) {
-    display += 'Medications:\n';
-    guidance.meds.forEach(m => { 
-      if (m && m.trim()) display += `- ${m}\n`; 
-    });
-    display += '\n';
-  }
-  
-  if (guidance.note && guidance.note.trim()) {
-    display += `Note: ${guidance.note}`;
   }
 
-  // Typewriter display
-  el.classList.add('typing');
+  if (
+    guidance.warnings &&
+    Array.isArray(guidance.warnings) &&
+    guidance.warnings.length > 0
+  ) {
+    display += `${t.warnings}\n\n`;
+
+    guidance.warnings.forEach(w => {
+      const text = normalizeGuidanceItem(w);
+
+      if (text && text.trim()) {
+        display += `• ${text}\n`;
+      }
+    });
+
+    display += '\n';
+  }
+
+  if (
+    guidance.meds &&
+    Array.isArray(guidance.meds) &&
+    guidance.meds.length > 0
+  ) {
+    display += `${t.meds}\n\n`;
+    guidance.meds.forEach(m => {
+      const text = normalizeGuidanceItem(m);
+
+      if (text && text.trim()) {
+        display += `• ${text}\n`;
+      }
+    });
+
+    display += '\n';
+  }
+
+  if (guidance.note && guidance.note.trim()) {
+    display += `${t.note}\n\n${guidance.note}`;
+  }
+
+  if (!display.trim()) {
+    display = 'No guidance available.';
+  }
+
   let i = 0;
-  function type() {
+
+  function typeWriter() {
     if (i < display.length) {
       el.textContent += display.charAt(i);
       i++;
-      typewriterTimer = setTimeout(type, 8);
+      typewriterTimer = setTimeout(typeWriter, 8);
     } else {
-      el.classList.remove('typing');
-      setTimeout(() => speakGuidance(display), 500);
+      setTimeout(() => {
+        speakGuidance(display);
+      }, 500);
     }
   }
-  type();
+
+  typeWriter();
+
+  response.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  });
+}
+document.addEventListener('DOMContentLoaded', () => {
+
+  const panicBtn = document.getElementById('panicBtn');
+
+  if (panicBtn) {
+
+    panicBtn.addEventListener('click', () => {
+
+      emergencyMode = true;
+      emergencyStep = 0;
+      emergencyAnswers = {};
+
+      addBotMessage(
+        "🚨 Emergency Mode Activated"
+      );
+
+      askEmergencyQuestion();
+    });
+
+  }
+
+});
+
+function addBotMessage(text) {
+
+  const chat = document.getElementById('chatArea');
+
+  const msg = document.createElement('div');
+
+  msg.className = 'bot-message';
+
+  msg.textContent = text;
+
+  chat.appendChild(msg);
+
+  chat.scrollTop = chat.scrollHeight;
+
+  speakGuidance(text);
 }
 
+function addUserMessage(text) {
+
+  const chat = document.getElementById('chatArea');
+
+  const msg = document.createElement('div');
+
+  msg.className = 'user-message';
+
+  msg.textContent = text;
+
+  chat.appendChild(msg);
+
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function askEmergencyQuestion() {
+
+  if (emergencyStep >= emergencyQuestions.length) {
+
+    evaluateEmergency();
+
+    return;
+  }
+
+  addBotMessage(
+    emergencyQuestions[emergencyStep]
+  );
+}
+
+function evaluateEmergency() {
+
+  addBotMessage(
+    "🔍 Analyzing emergency..."
+  );
+
+  addBotMessage(
+    "🚨 HIGH RISK DETECTED"
+  );
+
+  addBotMessage(
+`1. Apply firm pressure to bleeding.
+
+2. Keep the injured person still.
+
+3. Do not straighten broken limbs.
+
+4. Seek emergency medical help immediately.`
+  );
+}
 // Init
 applyLanguage('en');

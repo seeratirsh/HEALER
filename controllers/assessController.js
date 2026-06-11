@@ -33,7 +33,7 @@ async function assess(req, res) {
     console.log('English message:', englishMessage);
 
     // EMERGENCY PRE-CHECK — if clearly emergency, return deterministic protocol
-    const emergencyRegex = /\b(choking|not breathing|no breathing|no pulse|heavy bleeding|unconscious|seizure|cardiac arrest|heart attack|anaphylaxis|severe burn|stroke|fainting)\b/i;
+    const emergencyRegex = /\b(choking|not breathing|no breathing|heavy bleeding|bleeding|fracture|broken bone|unconscious|head injury|neck injury|seizure|stroke|cardiac arrest|heart attack)\b/i;
 
     if (emergencyRegex.test(englishMessage)) {
       console.log('Emergency detected by regex');

@@ -369,3 +369,61 @@ html[dir="rtl"] .loading-inner { flex-direction: row-reverse; }
   .btn-sm { flex: 1; justify-content: center; }
   .tts-btn span { display: none; }
 }
+
+/* ===== HEALER AGENT ===== */
+
+.hero-features{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+  margin-top:8px;
+  color:var(--lav);
+  font-size:.78rem;
+  font-weight:600;
+}
+
+.hero-features i{
+  color:var(--lav);
+}
+
+.analysis-line{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:12px;
+  padding:10px 14px;
+  background:var(--lav-bg);
+  border:1px solid var(--lav-light);
+  border-radius:12px;
+  color:var(--lav);
+  font-size:.78rem;
+  font-weight:600;
+}
+
+.analysis-line i{
+  color:var(--lav);
+}
+
+.resp-title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.agent-pill{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.risk-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+
+.btn-main i,
+.btn-sm i{
+  margin-right:4px;
+}
