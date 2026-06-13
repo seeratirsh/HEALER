@@ -10,13 +10,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;600&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css"/>
-  <link rel="stylesheet"href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 </head>
 <body>
-<div class="wrap">
 
-  <!-- TOP BAR -->
-  <div class="top-bar">
+  <!-- ═══ STICKY NAVBAR — outside .wrap so it truly sticks ═══ -->
+  <header class="top-bar">
     <div class="brand">
       <div class="cross">
         <svg viewBox="0 0 20 20" fill="none">
@@ -25,217 +24,156 @@
         </svg>
       </div>
       <div class="brand-text">
-      <h1 data-i18n="appName">HEALER</h1>
-      <p data-i18n="tagline">
-      Vision • Voice • Reasoning • Guidance
-      </p>
-    </div>
+        <h1 data-i18n="appName">HEALER</h1>
+        <p data-i18n="tagline">Vision · Voice · Reasoning · Guidance</p>
+      </div>
     </div>
     <div class="langs">
       <button class="lb on" data-lang="en">EN</button>
       <button class="lb" data-lang="hi">हि</button>
       <button class="lb" data-lang="ur">اردو</button>
     </div>
-  </div>
+  </header>
 
-  <!-- GREETING -->
-  <div class="card greeting-card">
-    <div class="avatar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#7C6FCD" stroke-width="1.8">
-        <path d="M12 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
-        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-      </svg>
-    </div>
-    <div class="greeting">
+  <!-- ═══ PAGE CONTENT — offset by navbar height ═══ -->
+  <main class="wrap">
 
-  <h2 data-i18n="greeting">
-    Hi, I'm HEALER 👋
-  </h2>
-
-  <p class="hero-features">
-
-    <i class="fa-solid fa-eye"></i>
-    Vision
-
-    <span>•</span>
-
-    <i class="fa-solid fa-microphone"></i>
-    Voice
-
-    <span>•</span>
-
-    <i class="fa-solid fa-brain"></i>
-    Reasoning
-
-    <span>•</span>
-
-    <i class="fa-solid fa-heart-pulse"></i>
-     Guidance
-
-    </p>
-
-    <p data-i18n="greetingSub">
-     Describe what's happening — emergencies, fever, pain, anything.
-    </p>
-
-   </div>
-  </div>
-
-  <!-- LOADING — between greeting and input -->
-  <div id="loading" class="card loading hidden">
-    <div class="loading-inner">
-      <div class="pulse-ring"></div>
-      <div>
-        <p class="loading-title" data-i18n="loadingTitle">Analyzing...</p>
-        <p class="loading-sub" data-i18n="loadingSub">Checking WHO protocols</p>
+    <!-- GREETING -->
+    <div class="card greeting-card">
+      <div class="avatar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#7C6FCD" stroke-width="1.8">
+          <path d="M12 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
+          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
       </div>
-    </div>
-  </div>
-
-  <!-- RESPONSE — between greeting and input, just like ChatGPT -->
-  <div id="responseArea" class="card response-card hidden">
-    <div class="resp-head">
-      <div class="resp-head-left">
-
-      <div class="resp-dot"></div>
-
-      <div class="resp-title">
-
-      <i class="fa-solid fa-brain"></i>
-
-       HEALER AI ANALYSIS
-
-     </div>
-
-    </div>
-      <div class="tts-btns">
-        <button class="tts-btn" id="speakBtn"
-          onclick="speakGuidance(document.getElementById('guidanceText').textContent)">
-          <span data-i18n="btnSpeak">🔊 Speak</span>
-        </button>
-        <button class="tts-btn stop" id="stopBtn" onclick="stopSpeaking()" style="display:none">
-          <span data-i18n="btnStop">⏹ Stop</span>
-        </button>
+      <div class="greeting">
+        <h2 data-i18n="greeting">Hi, I'm HEALER 👋</h2>
+        <p class="hero-features">
+          <i class="fa-solid fa-eye"></i> Vision
+          <span>·</span>
+          <i class="fa-solid fa-microphone"></i> Voice
+          <span>·</span>
+          <i class="fa-solid fa-brain"></i> Reasoning
+          <span>·</span>
+          <i class="fa-solid fa-heart-pulse"></i> Guidance
+        </p>
+        <p data-i18n="greetingSub">
+          Describe what's happening — emergencies, fever, pain, anything.
+        </p>
       </div>
     </div>
 
-    <!-- Image preview if user uploaded one -->
-    <img id="imagePreview" style="display:none;width:100%;max-height:160px;object-fit:cover;border-radius:8px;margin-bottom:10px;" alt="Uploaded image"/>
-
-    <!-- Typewriter text streams here -->
-
-
-    <div id="agentStatus" class="agent-status hidden">
-
-  <div class="agent-pill">
-    <i class="fa-solid fa-brain"></i>
-    Symptoms Analyzed
-  </div>
-
-  <div class="agent-pill">
-    <i class="fa-solid fa-stethoscope"></i>
-    WHO Guidance
-  </div>
-
-  <div class="agent-pill">
-    <i class="fa-solid fa-microphone"></i>
-    Voice Ready
-  </div>
-
-</div>
-<div id="riskBadge" class="risk-badge hidden"></div>
-
-<div class="analysis-line">
-
-  <i class="fa-solid fa-sparkles"></i>
-
-  AI reasoning completed using multilingual symptom assessment
-
-</div>
-<div id="guidanceText" class="guidance"></div>
-
-    <div class="warn-row">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        style="flex-shrink:0;margin-top:1px">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="12"/>
-        <line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
-      <p data-i18n="disclaimer">General guidance only. Always consult a doctor for serious conditions.</p>
+    <!-- LOADING -->
+    <div id="loading" class="card loading hidden">
+      <div class="loading-inner">
+        <div class="pulse-ring"></div>
+        <div>
+          <p class="loading-title" data-i18n="loadingTitle">Analyzing...</p>
+          <p class="loading-sub" data-i18n="loadingSub">Checking WHO protocols</p>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <!-- INPUT — always at bottom, response appears above it -->
-  <div class="card input-card">
-    <div class="input-label">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/>
-      </svg>
-      <span data-i18n="inputLabel">What's the problem?</span>
-    </div>
-    <textarea id="textInput" data-i18n-placeholder="placeholder"></textarea>
-    <div class="btn-row">
-      <button id="submitText" class="btn-main">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <line x1="22" y1="2" x2="11" y2="13"/>
-          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+    <!-- RESPONSE -->
+    <div id="responseArea" class="card response-card hidden">
+      <div class="resp-head">
+        <div class="resp-head-left">
+          <div class="resp-dot"></div>
+          <div class="resp-title">
+            <i class="fa-solid fa-brain"></i>
+            HEALER AI ANALYSIS
+          </div>
+        </div>
+        <div class="tts-btns">
+          <button class="tts-btn" id="speakBtn"
+            onclick="speakGuidance(document.getElementById('guidanceText').textContent)">
+            <span data-i18n="btnSpeak">🔊 Speak</span>
+          </button>
+          <button class="tts-btn stop" id="stopBtn" onclick="stopSpeaking()" style="display:none">
+            <span data-i18n="btnStop">⏹ Stop</span>
+          </button>
+        </div>
+      </div>
+
+      <img id="imagePreview"
+        style="display:none;width:100%;max-height:160px;object-fit:cover;border-radius:8px;margin-bottom:10px;"
+        alt="Uploaded image"/>
+
+      <div id="agentStatus" class="agent-status hidden">
+        <div class="agent-pill"><i class="fa-solid fa-brain"></i> Symptoms Analyzed</div>
+        <div class="agent-pill"><i class="fa-solid fa-stethoscope"></i> WHO Guidance</div>
+        <div class="agent-pill"><i class="fa-solid fa-microphone"></i> Voice Ready</div>
+      </div>
+
+      <div id="riskBadge" class="risk-badge hidden"></div>
+
+      <div class="analysis-line">
+        <i class="fa-solid fa-sparkles"></i>
+        AI reasoning completed using multilingual symptom assessment
+      </div>
+
+      <div id="guidanceText" class="guidance"></div>
+
+      <div class="warn-row">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" style="flex-shrink:0;margin-top:1px">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
-       <span data-i18n="btnHelp">
+        <p data-i18n="disclaimer">General guidance only. Always consult a doctor for serious conditions.</p>
+      </div>
+    </div>
 
-          <i class="fa-solid fa-sparkles"></i>
-
-            Analyze Situation
-
-           </span>
-      </button>
-      <button id="voiceBtn" class="btn-sm">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="9" y="2" width="6" height="13" rx="3"/>
-          <path d="M5 10a7 7 0 0 0 14 0"/>
-          <line x1="12" y1="19" x2="12" y2="22"/>
+    <!-- INPUT -->
+    <div class="card input-card">
+      <div class="input-label">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/>
         </svg>
-        <span data-i18n="btnVoice">
-
-        <i class="fa-solid fa-microphone"></i>
-
-         Voice
-
-       </span>
-      </button>
-      <label for="imageInput" class="btn-sm">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="18" height="18" rx="2"/>
-          <circle cx="8.5" cy="8.5" r="1.5"/>
-          <path d="M21 15l-5-5L5 21"/>
-        </svg>
-        <span data-i18n="btnImage">
-          <i class="fa-solid fa-camera"></i>
-          Image
-        </span>
-      </label>
-      <input type="file" id="imageInput" accept="image/*" hidden/>
+        <span data-i18n="inputLabel">What's the problem?</span>
+      </div>
+      <textarea id="textInput" data-i18n-placeholder="placeholder"></textarea>
+      <div class="btn-row">
+        <button id="submitText" class="btn-main">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+          <span data-i18n="btnHelp">
+            <i class="fa-solid fa-sparkles"></i> Analyze Situation
+          </span>
+        </button>
+        <button id="voiceBtn" class="btn-sm">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="2" width="6" height="13" rx="3"/>
+            <path d="M5 10a7 7 0 0 0 14 0"/>
+            <line x1="12" y1="19" x2="12" y2="22"/>
+          </svg>
+          <span data-i18n="btnVoice"><i class="fa-solid fa-microphone"></i> Voice</span>
+        </button>
+        <label for="imageInput" class="btn-sm">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <path d="M21 15l-5-5L5 21"/>
+          </svg>
+          <span data-i18n="btnImage"><i class="fa-solid fa-camera"></i> Image</span>
+        </label>
+        <input type="file" id="imageInput" accept="image/*" hidden/>
+      </div>
+      <div class="chips-section">
+        <div class="chips-label" data-i18n="emergencyLabel">🚨 Emergencies</div>
+        <div class="quick-chips" id="emergencyChips"></div>
+      </div>
+      <div class="chips-section">
+        <div class="chips-label" data-i18n="healthLabel">💊 Everyday Health</div>
+        <div class="quick-chips" id="healthChips"></div>
+      </div>
     </div>
-    <div class="chips-section">
-      <div class="chips-label" data-i18n="emergencyLabel">🚨 Emergencies</div>
-      <div class="quick-chips" id="emergencyChips"></div>
-    </div>
-    <div class="chips-section">
-      <div class="chips-label" data-i18n="healthLabel">💊 Everyday Health</div>
-      <div class="quick-chips" id="healthChips"></div>
-    </div>
-  </div>
 
-  <!-- EMERGENCY BAR
-  <div class="em-bar">
-    <span class="em-tag" data-i18n="callNow">Call now</span>
-    <span class="em-pill">🇮🇳 112</span>
-    <span class="em-pill">🇵🇰 1122</span>
-    <span class="em-pill">🇬🇧 999</span>
-    <span class="em-pill">🇺🇸 911</span>
-    <span class="em-pill">🇦🇪 998</span>
-  </div> -->
+  </main>
 
-</div>
-<script src="/js/app.js"></script>
+  <script src="/js/app.js"></script>
 </body>
 </html>
